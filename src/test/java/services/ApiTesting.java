@@ -3,8 +3,11 @@ package services;
 import body.PostBookBody;
 import body.PostTokenBody;
 import body.UpdateBookBody;
+import io.qameta.allure.Allure;
 import io.restassured.RestAssured;
+import io.restassured.internal.RequestSpecificationImpl;
 import io.restassured.response.Response;
+import io.restassured.specification.RequestSpecification;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
@@ -17,7 +20,6 @@ public class ApiTesting {
     static String baseURI="https://restful-booker.herokuapp.com";
     static String tokenId;
     static String bookingId;
-
 
 
     @Test (priority = 6)
@@ -103,6 +105,28 @@ public class ApiTesting {
                 .body(PostTokenBody.tokenBody())
                 .when()
                 .delete("/booking/"+bookingId);
+    }
+
+    @Test
+    public void report(){
+        RequestSpecification restAssuredReq = RestAssured.given()
+                .header("Study","Test")
+                .log()
+                .all(true);
+        Response response = restAssuredReq.get(baseURI);
+        attachment(restAssuredReq, baseURI, response);
+        Assert.assertEquals(response.getStatusCode(), 200);
+
+    }
+
+    public String attachment(RequestSpecification httpRequest, String baseURI, Response response) {
+        String html = "Url = " + ApiTesting.baseURI + "\n \n" +
+                "Request Headers = " + ((RequestSpecificationImpl) httpRequest).getHeaders() + "\n \n" +
+                "Request Body = " + ((RequestSpecificationImpl) httpRequest).getBody() + "\n \n" +
+                "Response Body = " + response.getBody().asString();
+
+        Allure.addAttachment("Request Detail", html);
+        return html;
     }
 
 }
